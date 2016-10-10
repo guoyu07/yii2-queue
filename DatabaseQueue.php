@@ -6,19 +6,19 @@
  */
 namespace xutl\queue;
 
-use Yii;
-
-/**
- * Class Exception
- * @package xutl\queue
- */
-class Exception extends \yii\base\Exception
+class DatabaseQueue extends Queue
 {
-    /**
-     * @inheritdoc
-     */
-    public function getName()
+    public function init()
     {
-        return Yii::t('app', 'Queue Exception');
+        parent::init();
+    }
+
+    /**
+     * 弹出任务
+     * @param string|null $queue
+     */
+    public function pop($queue = null)
+    {
+
     }
 }

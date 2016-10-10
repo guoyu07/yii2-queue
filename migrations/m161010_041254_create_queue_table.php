@@ -3,9 +3,9 @@
 use yii\db\Migration;
 
 /**
- * Handles the creation for table `link`.
+ * Handles the creation for table `queue`.
  */
-class m160914_023822_create_link_table extends Migration
+class m161010_041254_create_queue_table extends Migration
 {
     /**
      * @inheritdoc

@@ -6,19 +6,16 @@
  */
 namespace xutl\queue;
 
-use Yii;
+use yii\base\Object;
 
 /**
- * Class Exception
+ * Class Job
  * @package xutl\queue
  */
-class Exception extends \yii\base\Exception
+abstract class Job extends Object
 {
     /**
-     * @inheritdoc
+     * Runs the job.
      */
-    public function getName()
-    {
-        return Yii::t('app', 'Queue Exception');
-    }
+    abstract public function run();
 }
