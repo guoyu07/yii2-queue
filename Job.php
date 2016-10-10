@@ -16,9 +16,16 @@ use yii\base\Object;
 abstract class Job extends Object
 {
     /**
-     * Runs the job.
+     * 执行任务
      */
     abstract public function run();
+
+    /**
+     * 获取任务名称
+     * @return string
+     */
+    abstract public function jobName();
+
 
     /**
      * @return QueueInterface
@@ -34,8 +41,19 @@ abstract class Job extends Object
      * @param integer $delay
      * @return string
      */
-    public function push($delay = 0)
+    public function push()
     {
-        return $this->getQueue()->push(serialize($this), $this->queueName(), $delay);
+        return $this->getQueue()->push($this, $this->jobName());
+    }
+
+    /**
+     * 推送当前任务到队列
+     *
+     * @param integer $delay
+     * @return string
+     */
+    public function later($delay = 0)
+    {
+        return $this->getQueue()->later($delay, $this->jobName(), $this);
     }
 }

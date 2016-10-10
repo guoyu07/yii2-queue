@@ -11,11 +11,13 @@ use yii\base\Component;
 abstract class Queue extends Component implements QueueInterface
 {
     /**
-     * 获取队列实例
-     * @return QueueInterface
+     * Create a payload string from the given job and data.
+     *
+     * @param  string $job
+     * @return string
      */
-    public static function getQueue()
+    protected function createPayload($job)
     {
-        return Yii::$app->get('queue');
+        return serialize($job);
     }
 }

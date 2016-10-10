@@ -14,42 +14,20 @@ namespace xutl\queue;
 interface QueueInterface
 {
     /**
-     * 推送载荷到队列
+     * Push a new job onto the queue.
      *
-     * @param mixed $payload 队列载荷
-     * @param string|null $queue 队列名称
-     * @param integer $delay 延迟
-     * @return string
+     * @param  string $payload
+     * @param  string|null $queue
+     * @param int $delay
+     * @return mixed
      */
     public function push($payload, $queue = null, $delay = 0);
 
     /**
-     * 从队列弹出消息
+     * Pop the next job off of the queue.
      *
-     * @param string|null $queue 队列名称
-     * @return array|false
+     * @param  string $queue
+     * @return Job|null
      */
     public function pop($queue = null);
-
-    /**
-     * 清空队列
-     *
-     * @param string $queue
-     */
-    public function purge($queue);
-
-    /**
-     * Release a reserved job back onto the queue.
-     *
-     * @param array $message
-     * @param integer $delay
-     */
-    public function release(array $message, $delay = 0);
-
-    /**
-     * 删除队列
-     *
-     * @param array $message
-     */
-    public function delete(array $message);
 }
