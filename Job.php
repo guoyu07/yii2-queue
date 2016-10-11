@@ -41,19 +41,8 @@ abstract class Job extends Object
      * @param integer $delay
      * @return string
      */
-    public function push()
+    public function push($delay = 0)
     {
-        return $this->getQueue()->push($this, $this->jobName());
-    }
-
-    /**
-     * 推送当前任务到队列
-     *
-     * @param integer $delay
-     * @return string
-     */
-    public function later($delay = 0)
-    {
-        return $this->getQueue()->later($delay, $this->jobName(), $this);
+        return $this->getQueue()->push($this, $this->jobName(),$delay);
     }
 }

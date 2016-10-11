@@ -7,8 +7,8 @@
 namespace xutl\queue;
 
 use Yii;
+use yii\helpers\Json;
 use yii\db\Connection;
-use yii\db\Expression;
 use yii\base\InvalidConfigException;
 
 /**
@@ -58,6 +58,7 @@ class DatabaseQueue extends Queue
      */
     public function push($payload, $queue, $delay = 0)
     {
+        $payload = is_string($payload) ? $payload : Json::encode($payload);
         $this->db->createCommand()->insert('{{%queue}}', [
             'queue' => $queue,
             'attempts' => 0,
@@ -88,15 +89,17 @@ class DatabaseQueue extends Queue
         }
         //准备事务
         $transaction = $this->db->beginTransaction();
-        if ($job = $this->receiveMessage($queue)) {
+        if ($message = $this->receiveMessage($queue)) {
             $this->db->createCommand("UPDATE {{%queue}} SET reserved=1, reserved_at=:reserved_at WHERE id=:id")
                 ->bindValue(':reserved_at', time())
-                ->bindValue(':id', $job->id)
+                ->bindValue(':id', $message->id)
                 ->execute();
             $transaction->commit();
-            return $job;
+            $message['payload'] = unserialize($message['payload']);
+            return $message;
         }
         $transaction->commit();
+        return null;
     }
 
     /**
@@ -138,7 +141,7 @@ class DatabaseQueue extends Queue
             'attempts' => 0,
             'reserved' => false,
             'reserved_at' => null,
-            'payload' => $message['body'],
+            'payload' => $message['payload'],
             'available_at' => time() + $delay,
             'created_at' => time(),
         ])->execute();
