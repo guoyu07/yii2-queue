@@ -110,12 +110,12 @@ class DatabaseQueue extends Component
      */
     protected function receiveMessage($queue)
     {
-        $job = $this->db->createCommand('SELECT * FROM {{%queue}} WHERE queue=:queue AND reserved=:reserved AND available_at<=:available_at for update ')
+        $message = $this->db->createCommand('SELECT * FROM {{%queue}} WHERE queue=:queue AND reserved=:reserved AND available_at<=:available_at for update ')
             ->bindValue(':queue', $queue)
             ->bindValue(':reserved', 0)
             ->bindValue(':available_at', time())
             ->queryOne();
-        return $job ? $job : null;
+        return $message ? $message : null;
     }
 
     /**
