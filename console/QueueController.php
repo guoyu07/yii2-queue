@@ -77,10 +77,12 @@ class QueueController extends Controller
         while (true) {
             if ($this->_timeout !== null) {
                 if ($this->_timeout < time()) {
+                    $this->stdout('Script execution time is too long, the process exits until the next start.' . PHP_EOL);
                     return true;
                 }
             }
             if (!$this->process($queue)) {
+                $this->stdout(sprintf('Wait %s second and continue.', $this->_sleep) . PHP_EOL);
                 sleep($this->_sleep);
             }
         }
