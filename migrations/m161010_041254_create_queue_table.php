@@ -20,7 +20,7 @@ class m161010_041254_create_queue_table extends Migration
 
         $this->createTable('{{%queue}}', [
             'id' => $this->primaryKey(),
-            'queue' => $this->string()->comment('队列名称'),
+            'queue' => $this->string()->notNull()->comment('队列名称'),
             'reserved' => $this->boolean()->defaultValue(false)->comment('是否保留'),
             'attempts' => $this->integer(5)->defaultValue(0)->comment('尝试次数'),
             'payload' => $this->text()->notNull()->comment('载荷'),
