@@ -97,14 +97,17 @@ class QueueController extends Controller
         $message = $this->getQueue()->pop($queue);
         if ($message) {
             try {
+                /** @var \xutl\queue\ActiveJob $job */
+                $job = call_user_func($message['body']['serializer'][1], $message['body']['object']);
                 $this->stdout(sprintf('Begin executing a job `%s`...', get_class($job)));
                 if ($job->run() || (bool)$this->restartOnFailure === false) {
                     $this->getQueue()->delete($message);
+                } else {
+                    $this->getQueue()->release($message, 60);
                 }
                 return true;
             } catch (\Exception $e) {
                 $this->getQueue()->delete($message);
-                $this->getQueue()->release($message);
                 Yii::error($e->getMessage(), __METHOD__);
             }
         }
