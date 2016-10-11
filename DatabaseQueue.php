@@ -95,7 +95,7 @@ class DatabaseQueue extends Queue
                 ->bindValue(':id', $message->id)
                 ->execute();
             $transaction->commit();
-            $message['payload'] = unserialize($message['payload']);
+            $message->payload = unserialize($message->payload);
             return $message;
         }
         $transaction->commit();
