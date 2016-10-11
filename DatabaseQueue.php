@@ -89,7 +89,7 @@ class DatabaseQueue extends Queue
         }
         //准备事务
         $transaction = $this->db->beginTransaction();
-        if ($message = $this->receiveMessage($queue)) {
+        if (($message = $this->receiveMessage($queue)) != null) {
             $this->db->createCommand("UPDATE {{%queue}} SET reserved=1, reserved_at=:reserved_at WHERE id=:id")
                 ->bindValue(':reserved_at', time())
                 ->bindValue(':id', $message->id)
