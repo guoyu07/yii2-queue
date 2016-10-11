@@ -10,7 +10,7 @@ use Yii;
 use yii\console\Controller;
 
 /**
- * Queue
+ * Job queue
  */
 class QueueController extends Controller
 {

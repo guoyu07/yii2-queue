@@ -92,10 +92,9 @@ class DatabaseQueue extends Component
         if (($message = $this->receiveMessage($queue)) != null) {
             $this->db->createCommand("UPDATE {{%queue}} SET reserved=1, reserved_at=:reserved_at WHERE id=:id")
                 ->bindValue(':reserved_at', time())
-                ->bindValue(':id', $message->id)
+                ->bindValue(':id', $message['id'])
                 ->execute();
             $transaction->commit();
-            $message->payload = Json::decode($message->payload);
             return $message;
         }
         $transaction->commit();
@@ -115,7 +114,7 @@ class DatabaseQueue extends Component
             ->bindValue(':reserved', 0)
             ->bindValue(':available_at', time())
             ->queryOne();
-        return $job ? (object)$job : null;
+        return $job ? $job : null;
     }
 
     /**
