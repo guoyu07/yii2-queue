@@ -14,7 +14,7 @@ namespace xutl\queue;
 interface QueueInterface
 {
     /**
-     * 推送任务到队列
+     * Pushs payload to the queue.
      *
      * @param mixed $payload
      * @param integer $delay
@@ -24,7 +24,7 @@ interface QueueInterface
     public function push($payload, $queue, $delay = 0);
 
     /**
-     * 从队列弹出任务
+     * Pops message from the queue.
      *
      * @param string $queue
      * @return array|false
@@ -32,14 +32,14 @@ interface QueueInterface
     public function pop($queue);
 
     /**
-     * 清空队列
+     * Purges the queue.
      *
      * @param string $queue
      */
     public function purge($queue);
 
     /**
-     * 发布消息
+     * Releases the message.
      *
      * @param array $message
      * @param integer $delay
@@ -47,7 +47,7 @@ interface QueueInterface
     public function release(array $message, $delay = 0);
 
     /**
-     * 删除消息
+     * Deletes the message.
      *
      * @param array $message
      */

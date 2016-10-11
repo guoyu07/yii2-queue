@@ -9,13 +9,14 @@ namespace xutl\queue;
 use Yii;
 use yii\helpers\Json;
 use yii\db\Connection;
+use yii\base\Component;
 use yii\base\InvalidConfigException;
 
 /**
  * Class DatabaseQueue
  * @package xutl\queue
  */
-class DatabaseQueue extends Queue
+class DatabaseQueue extends Component
 {
     /**
      * @var \yii\db\Connection|string Default database connection component name
@@ -58,7 +59,6 @@ class DatabaseQueue extends Queue
      */
     public function push($payload, $queue, $delay = 0)
     {
-        $payload = is_string($payload) ? $payload : Json::encode($payload);
         $this->db->createCommand()->insert('{{%queue}}', [
             'queue' => $queue,
             'attempts' => 0,
@@ -95,7 +95,7 @@ class DatabaseQueue extends Queue
                 ->bindValue(':id', $message->id)
                 ->execute();
             $transaction->commit();
-            $message->payload = unserialize($message->payload);
+            $message->payload = Json::decode($message->payload);
             return $message;
         }
         $transaction->commit();

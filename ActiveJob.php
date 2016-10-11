@@ -10,22 +10,26 @@ use Yii;
 use yii\base\Object;
 
 /**
- * Class Job
- * @package xutl\queue
+ * ActiveJob
+ *
+ * @author Alexander Kochetov <creocoder@gmail.com>
  */
-abstract class Job extends Object
+abstract class ActiveJob extends Object
 {
     /**
-     * 执行任务
+     * @var array
+     */
+    public $serializer = ['serialize', 'unserialize'];
+
+    /**
+     * Runs the job.
      */
     abstract public function run();
 
     /**
-     * 获取任务名称
      * @return string
      */
-    abstract public function jobName();
-
+    abstract public function queueName();
 
     /**
      * @return QueueInterface
@@ -36,13 +40,16 @@ abstract class Job extends Object
     }
 
     /**
-     * 推送当前任务到队列
+     * Pushs the job.
      *
      * @param integer $delay
      * @return string
      */
     public function push($delay = 0)
     {
-        return $this->getQueue()->push($this, $this->jobName(),$delay);
+        return $this->getQueue()->push([
+            'serializer' => $this->serializer,
+            'object' => call_user_func($this->serializer[0], $this),
+        ], $this->queueName(), $delay);
     }
 }
