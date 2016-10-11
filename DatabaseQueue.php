@@ -64,7 +64,7 @@ class DatabaseQueue extends Component
             'attempts' => 0,
             'reserved' => false,
             'reserved_at' => null,
-            'payload' => $payload,
+            'payload' => Json::encode($payload),
             'available_at' => time() + $delay,
             'created_at' => time(),
         ])->execute();
@@ -95,6 +95,7 @@ class DatabaseQueue extends Component
                 ->bindValue(':id', $message['id'])
                 ->execute();
             $transaction->commit();
+            $message['payload'] = Json::decode($message['payload']);
             return $message;
         }
         $transaction->commit();
