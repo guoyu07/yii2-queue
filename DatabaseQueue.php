@@ -136,15 +136,15 @@ class DatabaseQueue extends Component
      */
     public function release(array $message, $delay = 0)
     {
-        $this->db->createCommand()->insert('{{%queue}}', [
-            'queue' => $message['queue'],
-            'attempts' => 0,
-            'reserved' => false,
-            'reserved_at' => null,
-            'payload' => $message['payload'],
-            'available_at' => time() + $delay,
-            'created_at' => time(),
-        ])->execute();
+        $this->db->createCommand()->update(
+            '{{%queue}}',
+            [
+                'available_at' => time() + $delay,
+                'reserved' => false,
+                'reserved_at' => null,
+            ],
+            ['id' => $message['id']]
+        )->execute();
     }
 
     /**
