@@ -95,7 +95,7 @@ class DatabaseQueue extends Component
                 ->bindValue(':id', $message['id'])
                 ->execute();
             $transaction->commit();
-            $message['payload'] = Json::decode($message['payload']);
+            $message['body'] = Json::decode($message['payload']);
             return $message;
         }
         $transaction->commit();

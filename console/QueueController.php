@@ -99,7 +99,7 @@ class QueueController extends Controller
             try {
                 /** @var \xutl\queue\ActiveJob $job */
                 $job = call_user_func($message['body']['serializer'][1], $message['body']['object']);
-                $this->stdout(sprintf('Begin executing a job `%s`...', get_class($job)));
+                $this->stdout(sprintf('Begin executing a job `%s`...', get_class($job)) . PHP_EOL);
                 if ($job->run() || (bool)$this->restartOnFailure === false) {
                     $this->getQueue()->delete($message);
                 } else {
