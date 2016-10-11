@@ -90,7 +90,7 @@ class DatabaseQueue extends Component
         //准备事务
         $transaction = $this->db->beginTransaction();
         if (($message = $this->receiveMessage($queue)) != null) {
-            $this->db->createCommand("UPDATE {{%queue}} SET reserved=1, reserved_at=:reserved_at WHERE id=:id")
+            $this->db->createCommand("UPDATE {{%queue}} SET reserved=1, attempts=attempts+1, reserved_at=:reserved_at WHERE id=:id")
                 ->bindValue(':reserved_at', time())
                 ->bindValue(':id', $message['id'])
                 ->execute();
@@ -110,9 +110,8 @@ class DatabaseQueue extends Component
      */
     protected function receiveMessage($queue)
     {
-        $message = $this->db->createCommand('SELECT * FROM {{%queue}} WHERE queue=:queue AND reserved=:reserved AND available_at<=:available_at for update ')
+        $message = $this->db->createCommand('SELECT * FROM {{%queue}} WHERE queue=:queue AND reserved=0 AND available_at<=:available_at for update ')
             ->bindValue(':queue', $queue)
-            ->bindValue(':reserved', 0)
             ->bindValue(':available_at', time())
             ->queryOne();
         return $message ? $message : null;
