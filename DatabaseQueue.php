@@ -7,8 +7,8 @@
 namespace xutl\queue;
 
 use Yii;
-use yii\helpers\Json;
 use yii\db\Connection;
+use yii\db\Expression;
 use yii\base\InvalidConfigException;
 
 /**
@@ -21,22 +21,13 @@ class DatabaseQueue extends Queue
      * @var \yii\db\Connection|string Default database connection component name
      */
     public $db = 'db';
-
-    /**
-     * The name of the default queue.
-     *
-     * @var string
-     */
-    protected $default = 'default';
-
+    
     /**
      * The expiration time of a job.
      *
      * @var int|null
      */
     protected $expire = 60;
-
-    private $transaction;
 
     /**
      * @inheritdoc
@@ -50,7 +41,7 @@ class DatabaseQueue extends Queue
             if (!isset($this->db['class'])) {
                 $this->db['class'] = Connection::className();
             }
-            $this->db = Yii::createObject($this->connection);
+            $this->db = Yii::createObject($this->db);
         }
         if (!$this->db instanceof Connection) {
             throw new InvalidConfigException("Queue::db must be application component ID of a SQL connection.");
@@ -58,49 +49,18 @@ class DatabaseQueue extends Queue
     }
 
     /**
-     * Get the queue or return the default.
+     * 推送任务到队列
      *
-     * @param  string|null $queue
+     * @param mixed $payload
+     * @param integer $delay
+     * @param string $queue
      * @return string
      */
-    protected function getQueue($queue)
-    {
-        return $queue ?: $this->default;
-    }
-
-    /**
-     * Push a new job onto the queue.
-     *
-     * @param  string $job
-     * @param  string $queue
-     * @return void
-     */
-    public function push($job, $queue = null)
-    {
-        return $this->pushToDatabase(0, $queue, $this->createPayload($job));
-    }
-
-    /**
-     * Push a new job onto the queue after a delay.
-     *
-     * @param  int $delay
-     * @param  string $payload
-     * @param  string $queue
-     * @return void
-     */
-    public function later($delay, $job, $queue = null)
-    {
-        return $this->pushToDatabase($delay, $queue, $this->createPayload($job));
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function pushToDatabase($delay, $queue, $payload, $attempts = 0)
+    public function push($payload, $queue, $delay = 0)
     {
         $this->db->createCommand()->insert('{{%queue}}', [
-            'queue' => $this->getQueue($queue),
-            'attempts' => $attempts,
+            'queue' => $queue,
+            'attempts' => 0,
             'reserved' => false,
             'reserved_at' => null,
             'payload' => $payload,
@@ -116,20 +76,27 @@ class DatabaseQueue extends Queue
      * @param string|null $queue 队列名称
      * @return array|false
      */
-    public function pop($queue = null)
+    public function pop($queue)
     {
-        $queue = $this->getQueue($queue);
-
         if (!is_null($this->expire)) {
-            $this->releaseJobsThatHaveBeenReservedTooLong($queue);
+            //将发布的消息重新放入队列
+            $expired = time() + $this->expire;
+            $this->db->createCommand("UPDATE {{%queue}} SET reserved=0, reserved_at=null, attempts=attempts+1 WHERE queue=:queue AND reserved=1 AND reserved_at<=:expired")
+                ->bindValue(':queue', $queue)
+                ->bindValue(':expired', $expired)
+                ->execute();
         }
-
-        if ($job = $this->getNextAvailableJob($queue)) {
-            $this->markJobAsReserved($job->id);
-            $this->transaction->commit();
+        //准备事务
+        $transaction = $this->db->beginTransaction();
+        if ($job = $this->receiveMessage($queue)) {
+            $this->db->createCommand("UPDATE {{%queue}} SET reserved=1, reserved_at=:reserved_at WHERE id=:id")
+                ->bindValue(':reserved_at', time())
+                ->bindValue(':id', $job->id)
+                ->execute();
+            $transaction->commit();
             return $job;
         }
-        $this->transaction->commit();
+        $transaction->commit();
     }
 
     /**
@@ -138,50 +105,14 @@ class DatabaseQueue extends Queue
      * @param  string|null $queue
      * @return \StdClass|null
      */
-    protected function getNextAvailableJob($queue)
+    protected function receiveMessage($queue)
     {
-        $this->transaction = $this->db->beginTransaction();
         $job = $this->db->createCommand('SELECT * FROM {{%queue}} WHERE queue=:queue AND reserved=:reserved AND available_at<=:available_at for update ')
             ->bindValue(':queue', $queue)
             ->bindValue(':reserved', 0)
             ->bindValue(':available_at', time())
             ->queryOne();
         return $job ? (object)$job : null;
-    }
-
-    /**
-     * Mark the given job ID as reserved.
-     *
-     * @param  string $id
-     * @return void
-     */
-    protected function markJobAsReserved($id)
-    {
-        $this->db->createCommand()->update('{{%queue}}', [
-            'reserved' => true, 'reserved_at' => time(),
-        ], ['id' => $id])->execute();
-    }
-
-    /**
-     * Release the jobs that have been reserved for too long.
-     *
-     * @param  string $queue
-     * @return void
-     */
-    protected function releaseJobsThatHaveBeenReservedTooLong($queue)
-    {
-        return;
-        $expired = time() + $this->expire;
-
-        $this->database->table($this->table)
-            ->where('queue', $this->getQueue($queue))
-            ->where('reserved', 1)
-            ->where('reserved_at', '<=', $expired)
-            ->update([
-                'reserved' => 0,
-                'reserved_at' => null,
-                'attempts' => new Expression('attempts + 1'),
-            ]);
     }
 
     /**
@@ -192,19 +123,6 @@ class DatabaseQueue extends Queue
     public function purge($queue)
     {
         $this->db->delete('{{%queue}}', ['queue' => $queue])->execute();
-    }
-
-    /**
-     * Release a reserved job back onto the queue.
-     *
-     * @param  string $queue
-     * @param  \StdClass $job
-     * @param  int $delay
-     * @return void
-     */
-    public function release($queue, $job, $delay)
-    {
-        return $this->pushToDatabase($delay, $queue, $job['payload'], $job['attempts']);
     }
 
     /**
