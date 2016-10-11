@@ -26,6 +26,8 @@ class QueueController extends Controller
      */
     public $_timeout;
 
+    public $_daemonize = false;
+
     /**
      * @var bool
      * Need restart job if failure or not
@@ -77,12 +79,20 @@ class QueueController extends Controller
         while (true) {
             if ($this->_timeout !== null) {
                 if ($this->_timeout < time()) {
-                    $this->stdout('Script execution time is too long, the process exits until the next start.' . PHP_EOL);
+                    if (!$this->_daemonize) {
+                        $this->stdout('Script execution time is too long, the process exits until the next start.' . PHP_EOL);
+                    } else {
+                        Yii::trace('Script execution time is too long, the process exits until the next start.');
+                    }
                     return true;
                 }
             }
             if (!$this->process($queue)) {
-                $this->stdout(sprintf('Wait %s second and continue.', $this->_sleep) . PHP_EOL);
+                if (!$this->_daemonize) {
+                    $this->stdout(sprintf('Wait %s second and continue.', $this->_sleep) . PHP_EOL);
+                } else {
+                    Yii::trace(sprintf('Wait %s second and continue.', $this->_sleep));
+                }
                 sleep($this->_sleep);
             }
         }
@@ -101,7 +111,11 @@ class QueueController extends Controller
             try {
                 /** @var \xutl\queue\ActiveJob $job */
                 $job = call_user_func($message['body']['serializer'][1], $message['body']['object']);
-                $this->stdout(sprintf('Begin executing a job `%s`...', get_class($job)) . PHP_EOL);
+                if (!$this->_daemonize) {
+                    $this->stdout(sprintf('Begin executing a job `%s`...', get_class($job)) . PHP_EOL);
+                } else {
+                    Yii::trace(sprintf('Begin executing a job `%s`...', get_class($job)));
+                }
                 if ($job->run() || (bool)$this->restartOnFailure === false) {
                     $this->getQueue()->delete($message);
                 } else {
@@ -129,6 +143,9 @@ class QueueController extends Controller
         }
         if (getenv('QUEUE_SLEEP')) {
             $this->_sleep = (int)getenv('QUEUE_SLEEP');
+        }
+        if (getenv('DAEMONIZE')) {
+            $this->_daemonize = (int)getenv('DAEMONIZE');
         }
         return true;
     }
