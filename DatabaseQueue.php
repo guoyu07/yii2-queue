@@ -21,7 +21,7 @@ class DatabaseQueue extends Queue
      * @var \yii\db\Connection|string Default database connection component name
      */
     public $db = 'db';
-    
+
     /**
      * The expiration time of a job.
      *
@@ -123,6 +123,25 @@ class DatabaseQueue extends Queue
     public function purge($queue)
     {
         $this->db->delete('{{%queue}}', ['queue' => $queue])->execute();
+    }
+
+    /**
+     * 发布消息
+     *
+     * @param array $message
+     * @param integer $delay
+     */
+    public function release(array $message, $delay = 0)
+    {
+        $this->db->createCommand()->insert('{{%queue}}', [
+            'queue' => $message['queue'],
+            'attempts' => 0,
+            'reserved' => false,
+            'reserved_at' => null,
+            'payload' => $message['body'],
+            'available_at' => time() + $delay,
+            'created_at' => time(),
+        ])->execute();
     }
 
     /**
