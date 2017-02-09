@@ -14,6 +14,8 @@
     "yiisoft/yii2": "~2.0.0"
   },
   "require-dev": {
+    "yiisoft/yii2-debug": "*",
+    "yiisoft/yii2-redis": "*",
     "php-amqplib/php-amqplib": "~2.6.0",
     "aws/aws-sdk-php": "~3.0",
     "predis/predis": "~1.0"
