@@ -1,15 +1,12 @@
 {
   "name": "xutl/yii2-queue",
   "description": "The queue extension for the Yii framework",
-  "keywords": [
-    "yii2",
-    "queue"
-  ],
+  "keywords": ["yii2", "queue","db","async","redis","rabbitmq","aws","gearman"],
   "type": "yii2-extension",
   "license": "BSD-3-Clause",
   "authors": [
     {
-      "name": "X TL",
+      "name": "XTL",
       "email": "xtl@gmail.com"
     }
   ],
@@ -17,6 +14,7 @@
     "yiisoft/yii2": "~2.0.0"
   },
   "require-dev": {
+    "php-amqplib/php-amqplib": "~2.6.0",
     "aws/aws-sdk-php": "~3.0",
     "predis/predis": "~1.0"
   },

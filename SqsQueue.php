@@ -7,11 +7,11 @@
 
 namespace xutl\queue;
 
-use Aws\Sqs\SqsClient;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\helpers\Json;
+use Aws\Sqs\SqsClient;
 
 /**
  * SqsQueue
