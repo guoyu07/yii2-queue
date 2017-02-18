@@ -1,15 +1,11 @@
 <?php
 
+namespace xutl\queue\migrations;
+
 use yii\db\Migration;
 
-/**
- * Handles the creation for table `queue`.
- */
-class m161010_041254_create_queue_table extends Migration
+class M170218093011Create_queue_table extends Migration
 {
-    /**
-     * @inheritdoc
-     */
     public function up()
     {
         $tableOptions = null;
@@ -20,7 +16,7 @@ class m161010_041254_create_queue_table extends Migration
 
         $this->createTable('{{%queue}}', [
             'id' => $this->primaryKey(),
-            'queue' => $this->string()->notNull()->comment('队列名称'),
+            'tag' => $this->string()->notNull()->comment('队列名称'),
             'reserved' => $this->boolean()->defaultValue(false)->comment('是否保留'),
             'attempts' => $this->integer(5)->defaultValue(0)->comment('尝试次数'),
             'payload' => $this->text()->notNull()->comment('载荷'),
@@ -30,11 +26,19 @@ class m161010_041254_create_queue_table extends Migration
         ], $tableOptions);
     }
 
-    /**
-     * @inheritdoc
-     */
     public function down()
     {
         $this->dropTable('{{%queue}}');
     }
+
+    /*
+    // Use safeUp/safeDown to run migration code within a transaction
+    public function safeUp()
+    {
+    }
+
+    public function safeDown()
+    {
+    }
+    */
 }

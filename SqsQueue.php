@@ -7,18 +7,18 @@
 
 namespace xutl\queue;
 
+use Aws\Sqs\SqsClient;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\helpers\Json;
-use Aws\Sqs\SqsClient;
 
 /**
  * SqsQueue
  *
  * @author Alexander Kochetov <creocoder@gmail.com>
  */
-class SqsQueue extends Component implements QueueInterface
+class SqsQueue extends Queue
 {
     /**
      * @var SqsClient|array

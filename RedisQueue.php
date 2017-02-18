@@ -6,19 +6,19 @@
  */
 namespace xutl\queue;
 
+use Predis\Client;
+use Predis\Transaction\MultiExec;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use yii\helpers\Json;
-use Predis\Client;
-use Predis\Transaction\MultiExec;
 
 /**
  * RedisQueue
  *
  * @author Alexander Kochetov <creocoder@gmail.com>
  */
-class RedisQueue extends Component implements QueueInterface
+class RedisQueue extends Queue
 {
     /**
      * @var Client|array
@@ -97,8 +97,7 @@ class RedisQueue extends Component implements QueueInterface
     /**
      * @inheritdoc
      */
-    public function purge($queue)
-    {
+    public function purge($queue) {
         $this->redis->del([$queue, $queue . ':delayed', $queue . ':reserved']);
     }
 
